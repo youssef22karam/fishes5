@@ -169,12 +169,12 @@ const IRIS_GLSL = `    { vec3 ic=uEyeCol; float lum=dot(ic,vec3(.299,.587,.114))
       c2+=ic*.12*pow(1.0-nv,2.0);
       col=c2; }`;
 export function patchEye(src) {
-   let s = src.replace('ao = .70 + .30*smoothstep(.0,.35,1.0-q*.5);', 'ao = .70 + .30*smoothstep(.0,.35,1.0-q*.5);\n'+IRIS_GLSL).replace('uniform vec3 uEyeCol,uBase; uniform float uCartilage,uSeed;', 'uniform vec3 uEyeCol,uBase,uIrisRing; uniform float uCartilage,uSeed,uIrisFib,uIrisOn;');
+   let s = src.replace('ao = .70 + .30*smoothstep(.0,.35,1.0-q*.5);', 'ao = .70 + .30*smoothstep(.0,.35,1.0-q*.5);\n'+IRIS_GLSL).replace('uniform vec3 uEyeCol; uniform float uCartilage,uSeed;', 'uniform vec3 uEyeCol,uIrisRing; uniform float uCartilage,uSeed,uIrisFib,uIrisOn;');
   s = s.replace('float fibers = .80 + .12*sin(ph*79.0+q*12.0) + .07*sin(ph*131.0-q*7.0) + .05*sin(ph*37.0+3.0);',
     'float fibers = mix(.80 + .12*sin(ph*79.0+q*12.0) + .07*sin(ph*131.0-q*7.0) + .05*sin(ph*37.0+3.0), .74 + .15*sin(ph*uIrisFib+q*14.0) + .09*sin(ph*uIrisFib*1.7-q*8.0) + .05*sin(ph*uIrisFib*.45+3.0) + .06*sin(ph*uIrisFib*3.1+q*30.0), uIrisOn);');
   s = s.replace('col = irisCol*fibers*crypt*collar;', 'col = irisCol*fibers*crypt*collar;\n    col = mix(col, uIrisRing*fibers*1.05, uIrisOn*smoothstep(.50,.80,q)*(1.0-smoothstep(.88,1.0,q))*.85);   /* outer metallic ring */\n    col *= mix(1.0, .55 + .45*smoothstep(.0,.2,q), uIrisOn);                                                   /* dark inner pupil ring */');
   s = s.replace('spec = pow(max(dot(N,H),0.0), 320.0)*.9 + pow(max(dot(N,H),0.0), 40.0)*.03;', 'spec = pow(max(dot(N,H),0.0), 320.0)*.9 + pow(max(dot(N,H),0.0), 40.0)*.03 + uIrisOn*(pow(max(dot(N,normalize(normalize(uFillDir)+V)),0.0), 160.0)*.28);');
-  if (!s.includes('uIrisFib*1.7')) throw new Error('hyper skin patch: FS_EYE anchors not found');
+  if (!s.includes('uIrisFib*1.7') || !s.includes('uCartilage,uSeed,uIrisFib,uIrisOn;')) throw new Error('hyper skin patch: FS_EYE anchors not found');
   return s;
 }
 
